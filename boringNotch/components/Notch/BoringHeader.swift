@@ -42,40 +42,59 @@ struct BoringHeader: View {
                         OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
                             .transition(.scale(scale: 0.8).combined(with: .opacity))
                     } else {
-                        if Defaults[.showMirror] {
+                        if Defaults[.screenshotButtonInNotch] {
                             Button(action: {
-                                vm.toggleCameraPreview()
+                                Task { @MainActor in
+                                    vm.close(force: true)
+                                    try? await Task.sleep(for: .milliseconds(90))
+                                    ZaloScreenshotCoordinator.shared.startCapture()
+                                }
                             }) {
                                 Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
+                                    .fill(Color.white.opacity(0.10))
+                                    .frame(width: 28, height: 28)
                                     .overlay {
-                                        Image(systemName: "web.camera")
+                                        Image(systemName: "camera.viewfinder")
                                             .foregroundColor(.white)
-                                            .padding()
                                             .imageScale(.medium)
                                     }
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .help("Chụp màn hình & Ghi chú (⌥⌘A)")
                         }
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.16)) {
+                                vm.isPinned.toggle()
+                            }
+                        }) {
+                            Capsule()
+                                .fill(vm.isPinned ? Color(red: 0.0, green: 0.41, blue: 1.0) : Color.white.opacity(0.10))
+                                .frame(width: 28, height: 28)
+                                .overlay {
+                                    Image(systemName: vm.isPinned ? "pin.fill" : "pin")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 11, weight: .semibold))
+                                }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .help(vm.isPinned ? "Bỏ ghim tai thỏ" : "Ghim giữ tai thỏ mở")
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
                                 DispatchQueue.main.async {
                                     SettingsWindowController.shared.showWindow()
                                 }
-                                
                             }) {
                                 Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
+                                    .fill(Color.white.opacity(0.10))
+                                    .frame(width: 28, height: 28)
                                     .overlay {
                                         Image(systemName: "gear")
                                             .foregroundColor(.white)
-                                            .padding()
                                             .imageScale(.medium)
                                     }
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .help("Cài đặt")
                         }
                         if Defaults[.showBatteryIndicator] {
                             BoringBatteryView(

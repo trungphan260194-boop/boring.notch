@@ -1,0 +1,56 @@
+name: Build Boring Notch Lite VN
+
+on:
+  push:
+    branches:
+      - vn-lite-mod
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app || true
+          xcodebuild -version
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project boringNotch.xcodeproj
+
+      - name: Build Boring Notch Lite VN (Release, arm64)
+        run: |
+          xcodebuild build \
+            -project boringNotch.xcodeproj \
+            -scheme boringNotch \
+            -configuration Release \
+            -arch arm64 \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            ONLY_ACTIVE_ARCH=YES
+
+      - name: Verify bundle and package artifact
+        run: |
+          APP_PATH=$(find build/Build/Products/Release -maxdepth 2 -name "*.app" | head -n 1)
+          echo "Built app: $APP_PATH"
+          ls -la "$APP_PATH/Contents/Resources/"
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH" || true
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" dist/BoringNotch-Lite-VN.zip
+          ls -lh dist/BoringNotch-Lite-VN.zip
+
+      - name: Upload BoringNotch-Lite-VN.zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: BoringNotch-Lite-VN
+          path: dist/BoringNotch-Lite-VN.zip
+          retention-days: 14

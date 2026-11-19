@@ -40,7 +40,7 @@ class SettingsWindowController: NSWindowController {
     private func setupWindow() {
         guard let window = window else { return }
         
-        window.title = "Boring Notch Settings"
+        window.title = "Cài đặt Boring Notch"
         window.titlebarAppearsTransparent = false
         window.titleVisibility = .visible
         window.toolbarStyle = .unified
@@ -67,8 +67,8 @@ class SettingsWindowController: NSWindowController {
     }
     
     func showWindow() {
-        // Set app to regular mode first
-        NSApp.setActivationPolicy(.regular)
+        // Keep app permanently in accessory mode (never appear in Dock)
+        NSApp.setActivationPolicy(.accessory)
         
         // If window is already visible, bring it to front properly
         if window?.isVisible == true {
@@ -99,8 +99,6 @@ class SettingsWindowController: NSWindowController {
     
     private func relinquishFocus() {
         window?.orderOut(nil)
-        
-        // Set app back to accessory mode immediately
         NSApp.setActivationPolicy(.accessory)
     }
 }
@@ -115,8 +113,7 @@ extension SettingsWindowController: NSWindowDelegate {
     }
     
     func windowDidBecomeKey(_ notification: Notification) {
-        // Ensure app is in regular mode when window becomes key
-        NSApp.setActivationPolicy(.regular)
+        NSApp.setActivationPolicy(.accessory)
     }
     
     func windowDidResignKey(_ notification: Notification) {

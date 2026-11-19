@@ -22,7 +22,7 @@ struct DynamicNotchApp: App {
 
     init() {
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
 
         // Initialize the settings window controller with the updater controller
         SettingsWindowController.shared.setUpdaterController(updaterController)
@@ -30,13 +30,19 @@ struct DynamicNotchApp: App {
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+            Button("Chụp màn hình & Ghi chú") {
+                DispatchQueue.main.async {
+                    ZaloScreenshotCoordinator.shared.startCapture()
+                }
+            }
+            .keyboardShortcut(KeyEquivalent("a"), modifiers: [.option, .command])
+            Divider()
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            CheckForUpdatesView(updater: updaterController.updater)
             Divider()
             Button("Restart Boring Notch") {
                 ApplicationRelauncher.restart()
@@ -280,6 +286,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
 
         NotificationCenter.default.addObserver(
             self,
@@ -362,6 +369,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     type: .music,
                     duration: 3.0
                 )
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .captureScreenshot) { [weak self] in
+            Task { @MainActor in
+                self?.vm.close(force: true)
+                self?.viewModels.values.forEach { $0.close(force: true) }
+                try? await Task.sleep(for: .milliseconds(90))
+                ZaloScreenshotCoordinator.shared.startCapture()
             }
         }
 

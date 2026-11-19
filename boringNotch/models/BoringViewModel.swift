@@ -31,6 +31,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
+    @Published var isPinned: Bool = false
 
     @Published var screenUUID: String?
 
@@ -145,7 +146,7 @@ class BoringViewModel: NSObject, ObservableObject {
 
         case .denied, .restricted:
             DispatchQueue.main.async {
-                NSApp.setActivationPolicy(.regular)
+                NSApp.setActivationPolicy(.accessory)
                 NSApp.activate(ignoringOtherApps: true)
 
                 let alert = NSAlert()
@@ -160,7 +161,6 @@ class BoringViewModel: NSObject, ObservableObject {
                     }
                 }
 
-                NSApp.setActivationPolicy(.accessory)
                 NSApp.deactivate()
             }
 
@@ -197,10 +197,16 @@ class BoringViewModel: NSObject, ObservableObject {
         MusicManager.shared.forceUpdate()
     }
 
-    func close() {
-        // Do not close while a share picker or sharing service is active
+    func close(force: Bool = false) {
+        // Do not close while a share picker or sharing service is active, or when pinned
         if SharingStateManager.shared.preventNotchClose {
             return
+        }
+        if isPinned && !force {
+            return
+        }
+        if force {
+            self.isPinned = false
         }
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize

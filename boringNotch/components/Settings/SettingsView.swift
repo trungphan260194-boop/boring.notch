@@ -865,8 +865,6 @@ struct About: View {
                     Text("Version info")
                 }
 
-                UpdaterSettingsView(updater: updaterController.updater)
-
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
@@ -889,7 +887,7 @@ struct About: View {
             }
             VStack(spacing: 0) {
                 Divider()
-                Text("Made with 🫶🏻 by not so boring not.people")
+                Text("Boring Notch Lite VN · Bản tùy biến Tiếng Việt")
                     .foregroundStyle(.secondary)
                     .padding(.top, 5)
                     .padding(.bottom, 7)
@@ -897,13 +895,6 @@ struct About: View {
                     .padding(.horizontal, 10)
             }
             .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .toolbar {
-            //            Button("Welcome window") {
-            //                openWindow(id: "onboarding")
-            //            }
-            //            .controlSize(.extraLarge)
-            CheckForUpdatesView(updater: updaterController.updater)
         }
         .navigationTitle("About")
     }
@@ -1176,6 +1167,12 @@ struct Appearance: View {
         Form {
             Section {
                 Toggle("Always show tabs", isOn: $coordinator.alwaysShowTabs)
+                Defaults.Toggle(key: .useGlassBackground) {
+                    Text("Nền kính mờ (Liquid Glass)")
+                }
+                Defaults.Toggle(key: .screenshotButtonInNotch) {
+                    Text("Hiện nút chụp màn hình trên tai thỏ")
+                }
                 Defaults.Toggle(key: .settingsIconInNotch) {
                     Text("Show settings icon in notch")
                 }
@@ -1375,37 +1372,9 @@ struct Appearance: View {
                     }
                 }
             }
-
-            Section {
-                Defaults.Toggle(key: .showMirror) {
-                    Text("Enable boring mirror")
-                }
-                    .disabled(!checkVideoInput())
-                Picker("Mirror shape", selection: $mirrorShape) {
-                    Text("Circle")
-                        .tag(MirrorShapeEnum.circle)
-                    Text("Square")
-                        .tag(MirrorShapeEnum.rectangle)
-                }
-                Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactive")
-                }
-            } header: {
-                HStack {
-                    Text("Additional features")
-                }
-            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Appearance")
-    }
-
-    func checkVideoInput() -> Bool {
-        if AVCaptureDevice.default(for: .video) != nil {
-            return true
-        }
-
-        return false
     }
 }
 
@@ -1725,6 +1694,16 @@ struct AccentCircleButton: View {
 struct Shortcuts: View {
     var body: some View {
         Form {
+            Section {
+                KeyboardShortcuts.Recorder("Chụp màn hình & Ghi chú:", name: .captureScreenshot)
+            } header: {
+                Text("Chụp màn hình & Ghi chú (kiểu Zalo)")
+            } footer: {
+                Text("Mặc định ⌥⌘A: kéo chọn vùng, vẽ mũi tên, khung, làm mờ, đánh số, gõ ghi chú Tiếng Việt rồi sao chép, lưu, ghim hoặc đưa lên Khay tệp.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
             Section {
                 KeyboardShortcuts.Recorder("Toggle Sneak Peek:", name: .toggleSneakPeek)
             } header: {
