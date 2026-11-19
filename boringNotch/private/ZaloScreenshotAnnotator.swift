@@ -732,15 +732,25 @@ private struct ZaloScreenshotOverlayView: View {
     // MARK: - Inline Vietnamese Text Box
 
     private func inlineTextBox(at point: CGPoint) -> some View {
-        HStack(spacing: 4) {
-            TextField("Nhập ghi chú…", text: $session.pendingTextContent, onCommit: {
-                session.commitPendingText()
-            })
-            .textFieldStyle(.plain)
-            .font(.system(size: max(14, session.strokeWidth * 4.2), weight: .semibold))
-            .foregroundStyle(session.selectedColor.swiftUIColor)
-            .focused($textFieldFocused)
-            .frame(minWidth: 120, maxWidth: 320)
+        let fontSize: CGFloat = max(14, session.strokeWidth * 4.2)
+        let textColor: Color = session.selectedColor.swiftUIColor
+        let minX: CGFloat = session.selectionRect.minX + 75
+        let maxX: CGFloat = max(minX, session.selectionRect.maxX - 75)
+        let posX: CGFloat = min(max(point.x + 70, minX), maxX)
+        let minY: CGFloat = session.selectionRect.minY + 18
+        let maxY: CGFloat = max(minY, session.selectionRect.maxY - 18)
+        let posY: CGFloat = min(max(point.y, minY), maxY)
+
+        return HStack(spacing: 4) {
+            TextField("Nhập ghi chú…", text: $session.pendingTextContent)
+                .onSubmit {
+                    session.commitPendingText()
+                }
+                .textFieldStyle(.plain)
+                .font(.system(size: fontSize, weight: .semibold))
+                .foregroundStyle(textColor)
+                .focused($textFieldFocused)
+                .frame(minWidth: 120, maxWidth: 320)
 
             Button {
                 session.commitPendingText()
@@ -755,12 +765,9 @@ private struct ZaloScreenshotOverlayView: View {
         .background(Color.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 6))
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(session.selectedColor.swiftUIColor.opacity(0.85), lineWidth: 1.2)
+                .stroke(textColor.opacity(0.85), lineWidth: 1.2)
         )
-        .position(
-            x: min(max(point.x + 70, session.selectionRect.minX + 75), session.selectionRect.maxX - 75),
-            y: min(max(point.y, session.selectionRect.minY + 18), session.selectionRect.maxY - 18)
-        )
+        .position(x: posX, y: posY)
         .onAppear {
             DispatchQueue.main.async {
                 textFieldFocused = true
