@@ -40,8 +40,11 @@ jobs:
 
       - name: Verify bundle and package artifact
         run: |
-          APP_PATH=$(find build/Build/Products/Release -maxdepth 2 -name "*.app" | head -n 1)
+          set -euo pipefail
+          ls -la build/Build/Products/Release
+          APP_PATH=$(find build/Build/Products/Release -maxdepth 1 -name "*.app" ! -name "Updater.app" | head -n 1)
           echo "Built app: $APP_PATH"
+          test -d "$APP_PATH/Contents/Resources/vi.lproj"
           ls -la "$APP_PATH/Contents/Resources/"
           codesign --verify --deep --strict --verbose=2 "$APP_PATH" || true
           mkdir -p dist
